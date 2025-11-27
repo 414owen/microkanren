@@ -1,0 +1,35 @@
+cabal-version:      2.4
+name:               microkanren
+version:            0.1.0
+synopsis:           A declarative programming language
+homepage:           https://github.com/414owen/microkanren
+license:            MIT
+license-file:       LICENSE
+author:             Owen Shepherd
+maintainer:         owen@owen.cafe
+category:           Language
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall -Wno-name-shadowing
+
+library
+    import:           warnings
+    exposed-modules:  MicroKanren
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.20.0.0
+    hs-source-dirs:   src
+    default-language: GHC2021
+
+test-suite microkanren-test
+    import:           warnings
+    default-language: GHC2021
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.20.0.0,
+        microkanren

@@ -1,0 +1,12 @@
+indentation: 2
+function-arrows: leading
+single-constraint-parens: never
+single-deriving-parens: never
+sort-constraints: True
+sort-derived-clauses: True
+sort-deriving-clauses: True
+comma-style: leading
+import-export-style: leading
+import-grouping: by-scope-then-qualified
+respect-line-breaks: false
+trailing-section-operators: false
