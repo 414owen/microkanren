@@ -3,14 +3,25 @@ module Main (main) where
 import MicroKanren
 
 import Control.Applicative (Alternative (..))
-import Data.Functor (($>))
+import Control.Concurrent (MVar, newMVar, putMVar, takeMVar)
 import Data.List.NonEmpty (NonEmpty ((:|)))
-import Data.Maybe (catMaybes)
 import Data.Semigroup (sconcat)
+import System.IO.Unsafe (unsafePerformIO)
+import Prelude hiding (succ)
+
+testCount :: MVar Int
+testCount = unsafePerformIO $ newMVar 0
 
 assert :: Bool -> IO ()
-assert True = pure ()
-assert False = fail "Test failed"
+assert a = do
+  count <- takeMVar testCount
+  putStrLn $ "Running test " <> show count
+  putMVar testCount $ (+ 1) count
+  assert' a
+
+assert' :: Bool -> IO ()
+assert' True = pure ()
+assert' False = fail "Test failed"
 
 satisfiable :: Goal a -> Bool
 satisfiable = not . unsatisfiable
@@ -38,13 +49,13 @@ main = do
   assert $ satisfiable $ 0 =:= 0 <> 5 =:= 5
 
   -- Functor
-  assert $ eval (3 <$ fresh) == [Const 3]
-  assert $ eval (pure <$> fresh) == [[Var 0]]
+  assert $ eval (3 <$ fresh) == [3]
+  assert $ eval ((+ 1) <$> pure (2 :: Int)) == [3]
   -- Lazy in the LHS
   assert $ unsatisfiable (undefined <$> empty)
 
   -- Applicative (conjunction)
-  assert $ eval (pure ()) == eval (pure ())
+  assert $ eval (pure ()) == [()]
   assert $ eval (pure pure <*> pure ()) == [[()]]
   assert $ eval ((,) <$> pure () <*> pure ()) == [((), ())]
   assert $ eval ((,) <$> fresh <*> fresh) == [(Var 0, Var 1)]
@@ -53,7 +64,7 @@ main = do
   assert $ unsatisfiable ((,) <$> empty <*> undefined)
 
   -- Alternative (disjunction)
-  assert $ run empty == run (empty $> ())
+  assert $ eval empty == ([] :: [()])
   assert $ satisfiable $ pure () <|> pure ()
   assert $ satisfiable $ pure () <|> empty
   assert $ satisfiable $ empty <|> pure ()
@@ -76,7 +87,7 @@ main = do
         b =:= 8
         ask a
   assert $ fmap subst (exec prog) == [[(1, 8), (0, 9)], [(1, 8), (0, 10)]]
-  assert $ eval prog == [Just 9, Just 10]
+  assert $ eval prog == [9, 10]
 
   -- Variable binding
   assert $ eval fresh == [Var 0]
@@ -93,8 +104,8 @@ main = do
         a =:= c
         b =:= c
         c =:= 1
-        catMaybes <$> traverse ask [b, c]
-  assert $ eval prog == [Const <$> [1, 1]]
+        traverse ask [b, c]
+  assert $ eval prog == [[1, 1]]
 
   let prog = do
         a <- fresh
@@ -103,8 +114,8 @@ main = do
         a =:= c
         b =:= c
         a =:= 1
-        catMaybes <$> traverse ask [b, c]
-  assert $ eval prog == [Const <$> [1, 1]]
+        traverse ask [b, c]
+  assert $ eval prog == [[1, 1]]
 
   let prog = do
         a <- fresh
@@ -116,8 +127,8 @@ main = do
         b =:= d
         c =:= d
         b =:= 1
-        catMaybes <$> traverse ask [a, b, c, d]
-  assert $ eval prog == [Const <$> [1, 1, 1, 1]]
+        traverse ask [a, b, c, d]
+  assert $ eval prog == [[1, 1, 1, 1]]
 
   let prog = do
         a <- fresh
@@ -126,8 +137,8 @@ main = do
         a =:= b
         b =:= c
         1 =:= a
-        catMaybes <$> traverse ask [a, b, c]
-  assert $ eval prog == [Const <$> [1, 1, 1]]
+        traverse ask [a, b, c]
+  assert $ eval prog == [[1, 1, 1]]
 
   let prog = do
         a <- fresh
@@ -136,4 +147,4 @@ main = do
         b =:= a
         a =:= 2
         ask b
-  assert $ eval prog == [Just (Const 2)]
+  assert $ eval prog == [2]
