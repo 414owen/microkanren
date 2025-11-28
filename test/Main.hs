@@ -1,13 +1,15 @@
 module Main (main) where
 
+import Prelude hiding (succ)
+
 import Language.MicroKanren
+import Language.MicroKanren.Stdlib
 
 import Control.Applicative (Alternative (..))
 import Control.Concurrent (MVar, newMVar, putMVar, takeMVar)
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Semigroup (sconcat)
 import System.IO.Unsafe (unsafePerformIO)
-import Prelude hiding (succ)
 
 testCount :: MVar Int
 testCount = unsafePerformIO $ newMVar 0
@@ -148,3 +150,10 @@ main = do
         a =:= 2
         ask b
   assert $ eval prog == [2]
+
+  let prog = do
+        res <- fresh
+        add res 2 3
+        ask res
+
+  assert $ eval prog == [5]
