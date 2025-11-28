@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module MicroKanren
+module Language.MicroKanren
   ( run
   , eval
   , exec

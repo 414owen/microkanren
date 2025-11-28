@@ -1,6 +1,6 @@
 module Main (main) where
 
-import MicroKanren
+import Language.MicroKanren
 
 import Control.Applicative (Alternative (..))
 import Control.Concurrent (MVar, newMVar, putMVar, takeMVar)
