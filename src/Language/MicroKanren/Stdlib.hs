@@ -10,7 +10,7 @@ import Control.Applicative
 import Prelude hiding (succ)
 
 succ :: Term -> Term -> Goal ()
-succ a b = a =:= Cons Unit b
+succ a b = a =:= cons unit b
 
 add :: Term -> Term -> Term -> Goal ()
 add res a b = do

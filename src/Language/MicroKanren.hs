@@ -7,11 +7,15 @@ module Language.MicroKanren
   , exec
   , (=:=)
   , Goal
-  , Term (..)
+  , Term
   , State (subst)
+  , cons
   , fresh
   , ask
   , unit
+  , unVar
+  , unCons
+  , toNumber
   ) where
 
 import Control.Applicative (Alternative (..))
@@ -81,12 +85,24 @@ unify a b subst = case (walk a subst, walk b subst) of
   (_, Var _) -> unify b a subst
   _ -> Nothing
 
-unit :: Goal Term
-unit = pure Unit
+unit :: Term
+unit = Unit
 
 ask :: Term -> Goal Term
 ask (Var a) = Goal $ \state@State{..} -> [(walk (Var a) subst, state)]
 ask a = pure a
+
+cons :: Term -> Term -> Term
+cons = Cons
+
+unCons :: Term -> Maybe (Term, Term)
+unCons (Cons a b) = Just (a, b)
+unCons _ = Nothing
+
+-- To avoid exposing the Term constructor...
+unVar :: Term -> Maybe Int
+unVar (Var a) = Just a
+unVar _ = Nothing
 
 -- Helpers
 ----------

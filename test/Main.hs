@@ -59,8 +59,7 @@ main = do
   -- Applicative (conjunction)
   assert $ eval (pure ()) == [()]
   assert $ eval (pure pure <*> pure ()) == [[()]]
-  assert $ eval ((,) <$> pure () <*> pure ()) == [((), ())]
-  assert $ eval ((,) <$> fresh <*> fresh) == [(Var 0, Var 1)]
+  assert $ eval ((,) <$> pure 1 <*> pure 2) == [(1, 2)]
   assert $ unsatisfiable ((+) <$> empty <*> fresh)
   -- Lazy in the RHS
   assert $ unsatisfiable ((,) <$> empty <*> undefined)
@@ -92,10 +91,10 @@ main = do
   assert $ eval prog == [9, 10]
 
   -- Variable binding
-  assert $ eval fresh == [Var 0]
-  assert $ eval (fresh <|> fresh) == [Var 0, Var 0]
-  assert $ eval (fresh <> fresh) == [Var 1]
-  assert $ eval (sconcat $ fresh :| replicate 100 fresh) == [Var 100]
+  assert $ (unVar <$> eval fresh) == [Just 0]
+  assert $ (fmap unVar $ eval $ fresh <|> fresh) == [Just 0, Just 0]
+  assert $ (fmap unVar $ eval $ fresh <> fresh) == [Just 1]
+  assert $ (fmap unVar $ eval $ sconcat $ fresh :| replicate 100 fresh) == [Just 100]
   assert $ satisfiable $ fresh >>= (=:= 1)
 
   -- Test a few unification shapes
